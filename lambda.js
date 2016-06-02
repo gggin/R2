@@ -15,7 +15,29 @@ var code3 =
       (f 3))))
 */
 
-var code4 = 
+
+
+var yinTest1 = 
+['+', 1, 2];
+
+var yinTest2 = 
+['*', 2, 3];
+
+var yinTest3 = 
+['*', 2, ['+', 3, 4]];
+
+var yinTest4 = 
+['*', ['+', 1, 2], ['+', 3, 4]];
+
+var yinTest5 = 
+[['lambda', ['x'], ['*', 2, 'x']], 3];
+
+var yinTest6 = 
+['let', ['x', 2], 
+	['let', ['f', ['lambda', ['y'], ['*', 'x', 'y']]],
+		['f', 3]]];
+
+var yinTest7 = 
 ['let', ['x', 2],
     ['let', ['f', ['lambda', ['y'], ['*', 'x', 'y']]],
         ['let', ['x', 4],
@@ -23,7 +45,6 @@ var code4 =
         ]
     ]
 ];
-
 var index = 0;
 var lambdaScopeName = "LAMBDA_";
 var letScopeName = "LET_";
@@ -31,13 +52,13 @@ var letScopeName = "LET_";
 var env = {'a' : 5};
 
 function intep(code, cuEnv) {
-    console.log('-------BEGIN---')
-    console.log(code);
-    console.log('---------------')
-    console.log(env);
-    console.log('---------------')
-    console.log(cuEnv);
-    console.log('-------END-----')
+    //console.log('-------BEGIN---')
+    //console.log(code);
+    //console.log('---------------')
+    //console.log(env);
+    //console.log('---------------')
+    //console.log(cuEnv);
+    //console.log('-------END-----')
     if (typeof code === 'string') {
         var tt = cuEnv;
         var re = tt[code];
@@ -56,7 +77,7 @@ function intep(code, cuEnv) {
             return code;
         } else if(code[0] === 'let') {
             index++;
-            var tmpScope = cuEnv[letScopeName + index] = {};
+            var tmpScope = {};
             var origin = cuEnv;
             cuEnv = tmpScope;
             cuEnv["_p"] = origin;
@@ -78,7 +99,7 @@ function intep(code, cuEnv) {
         var right = intep(code[1], cuEnv);
         index++;
         var ttenv = left.env;
-        var tmpScope = ttenv[lambdaScopeName + index] = {};
+        var tmpScope = {};
         var origin = ttenv;
         ttenv = tmpScope;
         ttenv["_p"] = origin;
@@ -92,7 +113,14 @@ function intep(code, cuEnv) {
 
 //var result = intep(code2);
 //console.log(result);
+function r2(code) {
+	console.log(intep(code, env));
+}
 
-console.log(code4);
-var result = intep(code4, env);
-console.log(result);
+r2(yinTest1);
+r2(yinTest2);
+r2(yinTest3);
+r2(yinTest4);
+r2(yinTest5);
+r2(yinTest6);
+r2(yinTest7);
