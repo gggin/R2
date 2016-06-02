@@ -4,7 +4,9 @@
 
 var code2 = [['lambda', ['y'], ['-', 'y', code]], 9];
 
-console.log(code2);
+
+var code3 = 
+[['lambda', ['x'], ['x', 1]], ['lambda', ['y'], ['+', 'a', ['+', 'y', 5]]]]
 
 var index = 0;
 var lambdaScopeName = "LAMBDA_";
@@ -14,29 +16,14 @@ var currentEnv;
 
 currentEnv = env;
 function intep(code) {
+    console.log('-------BEGIN---')
+    console.log(code);
+    console.log('---------------')
     console.log(env);
-    if (code[0] === 'lambda') {
-        
-        //tmpScope[varName]
-        return intep(code[2]);
-    } else if(typeof code[0] === 'object') {
-        index++;
-        var tmpScope = currentEnv[lambdaScopeName + index] = {};
-        var origin = currentEnv;
-        currentEnv = tmpScope;
-        currentEnv["_p"] = origin;
-        var varName = code[0][1][0];
-        tmpScope[varName] = intep(code[1]);
-        return intep(code[0]);
-    } else if (code[0] === '+') {
-        return intep(code[1]) + intep(code[2]);        
-    } else if (code[0] === '-') {
-        return intep(code[1]) - intep(code[2]);        
-    } else if (code[0] === '*') {
-        return intep(code[1]) * intep(code[2]);        
-    } else if (code[0] === '/') {
-        return intep(code[1]) / intep(code[2]);        
-    } else if (typeof code === 'string') {
+    console.log('---------------')
+    console.log(currentEnv);
+    console.log('-------END-----')
+    if (typeof code === 'string') {
         var tt = currentEnv;
         var re = tt[code];
         while (re === undefined) {
@@ -47,7 +34,40 @@ function intep(code) {
     } else if (typeof code == 'number') {
         return code;
     }
+
+    if (code.length == 3) {
+        if (code[0] === 'lambda') {
+            return code;
+        }else if (code[0] === '+') {
+            return intep(code[1]) + intep(code[2]);        
+        } else if (code[0] === '-') {
+            return intep(code[1]) - intep(code[2]);        
+        } else if (code[0] === '*') {
+            return intep(code[1]) * intep(code[2]);        
+        } else if (code[0] === '/') {
+            return intep(code[1]) / intep(code[2]);        
+        } else {
+            throw new Error;
+        }
+    } else if (code.length == 2) {
+        var left = intep(code[0]);
+        var right = intep(code[1]);
+        index++;
+        var tmpScope = currentEnv[lambdaScopeName + index] = {};
+        var origin = currentEnv;
+        currentEnv = tmpScope;
+        currentEnv["_p"] = origin;
+        var varName = left[1][0];
+        tmpScope[varName] = right;
+        return intep(left[2]);
+    } else {
+        throw new Error;
+    }
 }
 
-var result = intep(code2);
+//var result = intep(code2);
+//console.log(result);
+
+console.log(code3);
+var result = intep(code3);
 console.log(result);
