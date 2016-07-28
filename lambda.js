@@ -1,120 +1,120 @@
-﻿var code = [
-['lambda', ['x'], ['+', 'x', ['+', 'y', 'a']]], 3
-];
+﻿var parse = require('./parser');
+var _ = require('lodash');
+var code = [
+    ['lambda', ['x'], ['+', 'x', ['+', 'y', 'a']]], 3];
 
 var code2 = [['lambda', ['y'], ['-', 'y', code]], 9];
 
 
-var code3 = 
-[['lambda', ['x'], ['x', 1]], ['lambda', ['y'], ['+', 'a', ['+', 'y', 5]]]]
+var code3 =
+    [['lambda', ['x'], ['x', 1]], ['lambda', ['y'], ['+', 'a', ['+', 'y', 5]]]]
 
-/*
-(let ([x 2])
-  (let ([f (lambda (y) (* x y))])
-    (let ([x 4])
-      (f 3))))
-*/
+var yinTest1 = parse(`
+(+ 1 2)`); // ==> 3
 
+var yinTest2 = parse(`
+(* 2 3)`); // ==> 6
 
+var yinTest3 = parse(`
+(* 2 (+ 3 4))`); // ==> 14
 
-var yinTest1 = 
-['+', 1, 2];
+var yinTest4 = parse(`
+(* (+ 1 2) (+ 3 4))`); // ==> 21
 
-var yinTest2 = 
-['*', 2, 3];
+var yinTest5 = parse(`
+((lambda (x) (* 2 x)) 3)`); // ==> 6
 
-var yinTest3 = 
-['*', 2, ['+', 3, 4]];
+var yinTest6 = parse(`
+(let (x 2)
+   (let (f (lambda (y) (* x y)))
+     (f 3)))`); // ==> 6
 
-var yinTest4 = 
-['*', ['+', 1, 2], ['+', 3, 4]];
+var yinTest7 = parse(`
+(let (x 2)
+   (let (f (lambda (y) (* x y)))
+     (let (x 4)
+       (f 3))))`);  // ==> 6   
 
-var yinTest5 = 
-[['lambda', ['x'], ['*', 2, 'x']], 3];
+var ginTest1 = parse(`
+ ((lambda (x) (x 1))
+    (lambda (y) (+ a (+ y 5))))
+ `);
 
-var yinTest6 = 
-['let', ['x', 2], 
-	['let', ['f', ['lambda', ['y'], ['*', 'x', 'y']]],
-		['f', 3]]];
+var env = {a:5};
 
-var yinTest7 = 
-['let', ['x', 2],
-    ['let', ['f', ['lambda', ['y'], ['*', 'x', 'y']]],
-        ['let', ['x', 4],
-            ['f', 3]
-        ]
-    ]
-];
-var index = 0;
-var lambdaScopeName = "LAMBDA_";
-var letScopeName = "LET_";
-
-var env = {'a' : 5};
-
-function intep(code, cuEnv) {
-    //console.log('-------BEGIN---')
-    //console.log(code);
-    //console.log('---------------')
-    //console.log(env);
-    //console.log('---------------')
-    //console.log(cuEnv);
-    //console.log('-------END-----')
-    if (typeof code === 'string') {
-        var tt = cuEnv;
-        var re = tt[code];
-        while (re === undefined) {
-            tt = tt._p;
-            re = tt[code];
-        }
-        return re;
-    } else if (typeof code == 'number') {
-        return code;
+function findIn(x, env) {
+    var r = env;
+    while (r !== undefined) {
+        if (r[x] !== undefined)
+            return r[x];
+        r = r._p;
     }
+    return undefined;
+}
 
-    if (code.length == 3) {
-        if (code[0] === 'lambda') {
-            code.env = cuEnv;
-            return code;
-        } else if(code[0] === 'let') {
-            index++;
-            var tmpScope = {};
-            var origin = cuEnv;
-            cuEnv = tmpScope;
-            cuEnv["_p"] = origin;
-            tmpScope[code[1][0]] = intep(code[1][1], cuEnv);
-            return intep(code[2], cuEnv);
-        } else if (code[0] === '+') {
-            return intep(code[1], cuEnv) + intep(code[2], cuEnv);        
-        } else if (code[0] === '-') {
-            return intep(code[1], cuEnv) - intep(code[2], cuEnv);        
-        } else if (code[0] === '*') {
-            return intep(code[1], cuEnv) * intep(code[2], cuEnv);        
-        } else if (code[0] === '/') {
-            return intep(code[1], cuEnv) / intep(code[2], cuEnv);        
+function extend(key, value, env) {
+    env[key] = value;
+}
+
+function parentExtend(key, value, env) {
+    var o = {};
+    o._p = _.clone(env);
+    o[key] = value;
+    return o;
+}
+
+//typeof
+//{env: , lambda: (lambda)}
+
+function intep2(exp, env) {
+    // console.log(exp);
+    // console.log('--')
+    // console.log(env);    
+    // console.log('----')
+    if (_.isString(exp)) {
+        var v = findIn(exp, env);
+        if (v === undefined) throw "wrong4";
+        return v;
+    } else if (_.isNumber(exp)) {
+        return exp;
+    } else if (_.isArray(exp) && exp.length === 2) {
+        var l = intep2(exp[0], env);
+        var r = intep2(exp[1], env);
+        if (l.env && l.lambda) {
+            return intep2(l.lambda[2], parentExtend(l.lambda[1][0], r, l.env));
         } else {
-            throw new Error;
+            throw new Error('wrong1');
         }
-    } else if (code.length == 2) {
-        var left = intep(code[0], cuEnv);
-        var right = intep(code[1], cuEnv);
-        index++;
-        var ttenv = left.env;
-        var tmpScope = {};
-        var origin = ttenv;
-        ttenv = tmpScope;
-        ttenv["_p"] = origin;
-        var varName = left[1][0];
-        tmpScope[varName] = right;
-        return intep(left[2], ttenv);
+    } else if (_.isArray(exp) && exp.length === 3) {
+        if (exp[0] === 'lambda') {
+            return { env: env, lambda: exp };
+        } else if (exp[0] === 'let') {
+            var bindT = exp[1];
+            var letExp = exp[2];
+            return intep2(letExp,
+                parentExtend(bindT[0], intep2(bindT[1], env), env));
+        } else {
+            if (exp[0] === '+') {
+                return intep2(exp[1], env) + intep2(exp[2], env);
+            } else if (exp[0] === '-') {
+                return intep2(exp[1], env) - intep2(exp[2], env);
+            } else if (exp[0] === '*') {
+                return intep2(exp[1], env) * intep2(exp[2], env);
+            } else if (exp[0] === '/') {
+                return intep2(exp[1], env) / intep2(exp[2], env);
+            } else {
+                throw new Error('wrong3');
+            }
+        }
     } else {
-        throw new Error;
+        throw new Error('wrong2');
     }
 }
 
 //var result = intep(code2);
 //console.log(result);
 function r2(code) {
-	console.log(intep(code, env));
+    console.log(intep2(code, env));
 }
 
 r2(yinTest1);
@@ -124,3 +124,4 @@ r2(yinTest4);
 r2(yinTest5);
 r2(yinTest6);
 r2(yinTest7);
+r2(ginTest1);

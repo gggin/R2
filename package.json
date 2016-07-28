@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/gggin/R2#readme",
   "dependencies": {
-    "lisp-to-array": "^0.2.0"
+    "lisp-to-array": "^0.2.0",
+    "lodash": "^4.14.0"
   }
 }
