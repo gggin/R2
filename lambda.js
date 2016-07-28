@@ -1,13 +1,5 @@
 ﻿var parse = require('./parser');
 var _ = require('lodash');
-var code = [
-    ['lambda', ['x'], ['+', 'x', ['+', 'y', 'a']]], 3];
-
-var code2 = [['lambda', ['y'], ['-', 'y', code]], 9];
-
-
-var code3 =
-    [['lambda', ['x'], ['x', 1]], ['lambda', ['y'], ['+', 'a', ['+', 'y', 5]]]]
 
 var yinTest1 = parse(`
 (+ 1 2)`); // ==> 3
@@ -38,7 +30,11 @@ var yinTest7 = parse(`
 var ginTest1 = parse(`
  ((lambda (x) (x 1))
     (lambda (y) (+ a (+ y 5))))
- `);
+ `); // if a = 5 // ==> 11
+
+var ginTest2 = parse(`
+((lambda (y) (- y 
+    ((lambda (x) (+ x (+ y 5))) 3))) 9)`); // ==> -8
 
 var env = {a:5};
 
@@ -125,3 +121,4 @@ r2(yinTest5);
 r2(yinTest6);
 r2(yinTest7);
 r2(ginTest1);
+r2(ginTest2);
