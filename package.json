@@ -1,0 +1,22 @@
+{
+  "name": "r2",
+  "version": "1.0.0",
+  "description": "yinwang.org R2 language javascript implement",
+  "main": "lambda.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gggin/R2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gggin/R2/issues"
+  },
+  "homepage": "https://github.com/gggin/R2#readme",
+  "dependencies": {
+    "lisp-to-array": "^0.2.0"
+  }
+}
